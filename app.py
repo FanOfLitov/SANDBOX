@@ -1,20 +1,17 @@
 from flask import Flask, render_template, request, jsonify
 import docker
-import subprocess
-import os
-import random
-import string
+import webbrowser
+from threading import Timer
 
 app = Flask(__name__)
-docker_client = docker.from_env()
 
-# Конфигурация доступных уязвимых образов
+# Конфигурация уязвимых образов
 VULNERABLE_IMAGES = {
     'wordpress_4.7': {
-        'image': 'wordpress:4.7',
-        'description': 'WordPress 4.7 - Уязвимость REST API',
+        'image': 'vulnerables/web-dvwa',  # Используем готовый уязвимый образ
+        'description': 'Damn Vulnerable Web App (DVWA)',
         'port': 80,
-        'vulns': ['CVE-2017-1001000']
+        'vulns': ['SQL Injection', 'XSS', 'CSRF']
     },
     'wordpress_5.0': {
         'image': 'wordpress:5.0',
@@ -24,10 +21,12 @@ VULNERABLE_IMAGES = {
     }
 }
 
+# Глобальная переменная для хранения URL запущенного контейнера
+current_instance_url = None
 
-# Генерация случайных идентификаторов
-def generate_id(length=8):
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
+def open_browser(url):
+    webbrowser.open_new_tab(url)
 
 
 @app.route('/')
@@ -37,52 +36,46 @@ def index():
 
 @app.route('/create', methods=['POST'])
 def create_instance():
+    global current_instance_url
+
     image_id = request.form.get('image')
     if image_id not in VULNERABLE_IMAGES:
         return jsonify({'error': 'Invalid image'}), 400
 
-    instance_id = generate_id()
     image_config = VULNERABLE_IMAGES[image_id]
 
     try:
+        client = docker.from_env()
+
         # Запускаем контейнер
-        container = docker_client.containers.run(
+        container = client.containers.run(
             image_config['image'],
             detach=True,
-            name=f"vulnlab_{instance_id}",
-            ports={f"{image_config['port']}/tcp": None},
+            ports={f"{image_config['port']}/tcp": ('127.0.0.1', 0)},  # Случайный порт
             environment={
-                'WORDPRESS_DB_HOST': 'db',
-                'WORDPRESS_DB_USER': 'wordpress',
-                'WORDPRESS_DB_PASSWORD': 'wordpress',
-                'WORDPRESS_DB_NAME': 'wordpress'
+                'PHPIDS_ENABLED': 'false'  # Для DVWA отключаем защиту
             }
         )
 
         # Получаем назначенный порт
         container.reload()
-        host_port = container.ports[f"{image_config['port']}/tcp"][0]['HostPort']
+        port = container.ports[f"{image_config['port']}/tcp"][0]['HostPort']
+        url = f"http://localhost:{port}"
+        current_instance_url = url
+
+        # Открываем в браузере через 3 секунды (даем контейнеру время запуститься)
+        Timer(3, open_browser, args=(url,)).start()
 
         return jsonify({
-            'id': instance_id,
-            'url': f"http://localhost:{host_port}",
-            'port': host_port,
-            'image': image_id
+            'status': 'success',
+            'url': url,
+            'port': port
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/destroy/<instance_id>', methods=['POST'])
-def destroy_instance(instance_id):
-    try:
-        container = docker_client.containers.get(f"vulnlab_{instance_id}")
-        container.stop()
-        container.remove()
-        return jsonify({'status': 'success'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
 if __name__ == '__main__':
-    app.run(host='localhost', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
+
+
