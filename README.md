@@ -31,4 +31,14 @@
 
 Ресурс с эксплоитами, может дизайн стырить или слишком вырвиглазно? https://exploitbox.io/index.html
 
-    
+
+P.S.
+
+    Damn Vulnerable Web App (DVWA):
+    docker pull vulnerables/web-dvwa
+
+    WordPress с уязвимостями:
+    docker pull wpscanteam/vulnerablewordpress
+
+    WebGoat (для изучения OWASP Top 10):
+     docker pull webgoat/webgoat-8.0
