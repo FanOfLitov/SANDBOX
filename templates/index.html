@@ -4,46 +4,51 @@
     <title>Vulnerability Sandbox</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .instance-card { margin-bottom: 20px; }
-        .vuln-list { list-style-type: none; padding-left: 0; }
+        .image-card { margin-bottom: 20px; }
+        .vuln-badge { margin-right: 5px; }
     </style>
 </head>
-<body background="light-blue">
+<body>
     <div class="container mt-4">
-        <h1 class="mb-4">Vulnerability Sandbox</h1>
-
         <div class="row">
-            <div class="col-md-6">
-                <h3>Доступные образы</h3>
-                <div class="list-group" id="imageList">
-                    {% for id, config in images.items() %}
-                    <div class="list-group-item">
-                        <h5>{{ config.description }}</h5>
-                        <p>Уязвимости:
-                            <ul class="vuln-list">
-                                {% for vuln in config.vulns %}
-                                <li>{{ vuln }}</li>
-                                {% endfor %}
-                            </ul>
-                        </p>
-                        <button class="btn btn-primary launch-btn" data-image="{{ id }}">Запустить</button>
-                    </div>
-                    {% endfor %}
+            <div class="col-12">
+                <h1 class="mb-4">Песочница Федечки</h1>
+                <div class="alert alert-info">
+                    Выберай уязвимый сервис для запуска. После нажатия кнопки "Запустить" откроется новая вкладка с сервисом.(или тебя пошлет нахер)
                 </div>
             </div>
+        </div>
 
+        <div class="row">
+            {% for id, config in images.items() %}
             <div class="col-md-6">
-                <h3>Активные инстансы</h3>
-                <div id="instancesContainer"></div>
+                <div class="card image-card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ config.description }}</h5>
+                        <div class="mb-2">
+                            {% for vuln in config.vulns %}
+                            <span class="badge bg-danger vuln-badge">{{ vuln }}</span>
+                            {% endfor %}
+                        </div>
+                        <button class="btn btn-primary launch-btn"
+                                data-image="{{ id }}"
+                                onclick="launchInstance('{{ id }}')">
+                            Запустить
+                        </button>
+                        <div class="mt-2 status" id="status-{{ id }}"></div>
+                    </div>
+                </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.querySelectorAll('.launch-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const imageId = btn.dataset.image;
+        async function launchInstance(imageId) {
+            const statusElement = document.getElementById(`status-${imageId}`);
+            statusElement.innerHTML = '<div class="spinner-border text-primary" role="status"></div> Запуск сервиса...';
+
+            try {
                 const response = await fetch('/create', {
                     method: 'POST',
                     headers: {
@@ -54,54 +59,19 @@
 
                 const data = await response.json();
                 if (data.error) {
-                    alert(`Ошибка: ${data.error}`);
-                    return;
+                    statusElement.innerHTML = `<div class="alert alert-danger">Ошибка: ${data.error}</div>`;
+                } else {
+                    statusElement.innerHTML = `
+                        <div class="alert alert-success">
+                            Сервис запущен! <a href="${data.url}" target="_blank">Открыть</a>
+                        </div>
+                    `;
                 }
-
-                addInstanceCard(data);
-            });
-        });
-
-        function addInstanceCard(instance) {
-            const container = document.getElementById('instancesContainer');
-            const card = document.createElement('div');
-            card.className = 'card instance-card';
-            card.innerHTML = `
-                <div class="card-body">
-                    <h5 class="card-title">${VULNERABLE_IMAGES[instance.image].description}</h5>
-                    <p class="card-text">
-                        <strong>ID:</strong> ${instance.id}<br>
-                        <strong>Порт:</strong> ${instance.port}<br>
-                        <strong>URL:</strong> <a href="${instance.url}" target="_blank">${instance.url}</a>
-                    </p>
-                    <button class="btn btn-danger destroy-btn" data-id="${instance.id}">Удалить</button>
-                </div>
-            `;
-            container.prepend(card);
-
-            card.querySelector('.destroy-btn').addEventListener('click', async () => {
-                const instanceId = instance.id;
-                const response = await fetch(`/destroy/${instanceId}`, {
-                    method: 'POST'
-                });
-
-                const data = await response.json();
-                if (data.error) {
-                    alert(`Ошибка: ${data.error}`);
-                    return;
-                }
-
-                card.remove();
-            });
+            } catch (error) {
+                statusElement.innerHTML = `<div class="alert alert-danger">Ошибка подключения: ${error}</div>`;
+            }
         }
-
-        const VULNERABLE_IMAGES = {
-            {% for id, config in images.items() %}
-            '{{ id }}': {
-                description: '{{ config.description }}'
-            },
-            {% endfor %}
-        };
     </script>
 </body>
 </html>
+
