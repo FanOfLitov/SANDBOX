@@ -1,83 +1,368 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Vulnerability Sandbox</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .image-card { margin-bottom: 20px; }
-        .vuln-badge { margin-right: 5px; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Security Sandbox</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .vuln-card {
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+            height: 100%;
+            border: 1px solid #dee2e6;
+        }
+        .vuln-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .vuln-badge {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .guide-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+        }
+        .tab-content {
+            padding: 20px 0;
+        }
+        .flag-form {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid #ced4da;
+        }
+        .status-message {
+            font-size: 0.9rem;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            overflow-x: auto;
+        }
+    </style>
 </head>
 <body>
-    <header class="container mt-0">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-          <div class="container-fluid">
-            <a class="navbar-brand" href="#">My Website</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt me-2"></i>Web Security Sandbox
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="#">Home</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">About</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">Services</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">Contact</a>
-                </li>
-              </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#apps">
+                            <i class="fas fa-boxes me-1"></i> Приложения
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#guides">
+                            <i class="fas fa-book me-1"></i> Руководства
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#flags">
+                            <i class="fas fa-flag me-1"></i> Флаги
+                        </a>
+                    </li>
+                </ul>
             </div>
-          </div>
-        </nav>
+        </div>
+    </nav>
 
-
-    </header>
-    <div class="container mt-4">
-        <div class="row">
+    <!-- Основной контент -->
+    <div class="container my-4">
+        <!-- Приветствие -->
+        <div class="row mb-4">
             <div class="col-12">
-                <h1 class="mb-4">Песочница Федечки</h1>
-                <div class="alert alert-info">
-                    Выберай уязвимый сервис для запуска. После нажатия кнопки "Запустить" откроется новая вкладка с сервисом.(или тебя пошлет нахер)
+                <div class="p-4 bg-light rounded-3">
+                    <h1 class="display-6">
+                        <i class="fas fa-shield-virus text-primary"></i> Песочница веб-безопасности
+                    </h1>
+                    <p class="lead">Практикуйте эксплуатацию уязвимостей в безопасной среде</p>
+                    <hr class="my-2">
+                    <p>Эта платформа содержит набор уязвимых веб-приложений для обучения основам кибербезопасности.</p>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <!-- Секция с уязвимыми приложениями -->
+        <div class="row mb-4" id="apps">
+            <div class="col-12">
+                <h2 class="mb-3">
+                    <i class="fas fa-box-open text-secondary"></i> Доступные приложения
+                </h2>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Нажмите "Запустить" для старта приложения. Оно откроется в новой вкладке через несколько секунд.
+                </div>
+            </div>
+
             {% for id, config in images.items() %}
-            <div class="col-md-6">
-                <div class="card image-card">
-                    <div class="card-body">
+            <div class="col-md-6 col-lg-4 col-xxl-3 mb-3">
+                <div class="card vuln-card h-100">
+                    <div class="card-body d-flex flex-column">
                         <h5 class="card-title">{{ config.description }}</h5>
-                        <div class="mb-2">
+                        <div class="mb-3">
                             {% for vuln in config.vulns %}
                             <span class="badge bg-danger vuln-badge">{{ vuln }}</span>
                             {% endfor %}
                         </div>
-                        <button class="btn btn-primary launch-btn"
-                                data-image="{{ id }}"
+                        <button class="btn btn-primary launch-btn mt-auto"
                                 onclick="launchInstance('{{ id }}')">
-                            Запустить
+                            <i class="fas fa-play me-2"></i>Запустить
                         </button>
-                        <div class="mt-2 status" id="status-{{ id }}"></div>
+                        <div class="mt-2 status-message" id="status-{{ id }}"></div>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
+
+        <!-- Секция с руководствами -->
+        <div class="row mb-4 guide-section" id="guides">
+            <div class="col-12">
+                <h2 class="mb-3">
+                    <i class="fas fa-graduation-cap text-secondary"></i> Руководства по эксплуатации
+                </h2>
+
+                <ul class="nav nav-tabs" id="guideTabs" role="tablist">
+                    {% for id, config in images.items() %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if loop.first %}active{% endif %}"
+                                id="{{ id }}-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#{{ id }}-guide"
+                                type="button">
+                            <i class="fas fa-{{ 'wordpress' if 'wordpress' in id else 'joomla' if 'joomla' in id else 'bug' }} me-1"></i>
+                            {{ config.description }}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="tab-content p-3 bg-white border border-top-0 rounded-bottom" id="guideTabsContent">
+                    {% for id, config in images.items() %}
+                    <div class="tab-pane fade {% if loop.first %}show active{% endif %}"
+                         id="{{ id }}-guide"
+                         role="tabpanel">
+                        <h4 class="mt-2 text-primary">
+                            <i class="fas fa-bug me-2"></i>Уязвимости:
+                        </h4>
+                        <div class="mb-4">
+                            {% for vuln in config.vulns %}
+                            <span class="badge bg-danger vuln-badge">{{ vuln }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <h4 class="text-primary">
+                            <i class="fas fa-list-ol me-2"></i>Инструкции:
+                        </h4>
+
+                        {% if id == 'dvwa' %}
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">1</span> SQL Injection</h5>
+                                <ol>
+                                    <li>Перейдите в раздел "SQL Injection"</li>
+                                    <li>Введите в поле ввода: <code>1' OR '1'='1</code></li>
+                                    <li>После успешной инъекции появится флаг: <code>FLAG{SQl1_3xpl01t3d_...}</code></li>
+                                </ol>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">2</span> XSS (Stored)</h5>
+                                <ol>
+                                    <li>Перейдите в раздел "XSS (Stored)"</li>
+                                    <li>Введите в поле сообщения: <code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code></li>
+                                    <li>После выполнения скрипта появится флаг: <code>FLAG{XSS_3xpl01t3d_...}</code></li>
+                                </ol>
+                            </div>
+
+                        {% elif id == 'bwapp' %}
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">1</span> Command Injection</h5>
+                                <ol>
+                                    <li>Перейдите в раздел "Command Injection"</li>
+                                    <li>Введите: <code>127.0.0.1; cat /etc/passwd</code></li>
+                                    <li>В выводе команды найдите флаг: <code>FLAG{BWAPP_CMD_...}</code></li>
+                                </ol>
+                            </div>
+
+                        {% elif id == 'juiceshop' %}
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">1</span> NoSQL Injection</h5>
+                                <ol>
+                                    <li>Перейдите на страницу входа</li>
+                                    <li>Введите в поле email: <code>admin' || '1'=='1</code></li>
+                                    <li>В личном кабинете после входа найдите флаг: <code>FLAG{NoSQL1_Juice_...}</code></li>
+                                </ol>
+                            </div>
+
+                        {% elif id == 'webgoat' %}
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">1</span> JWT Vulnerabilities</h5>
+                                <ol>
+                                    <li>Перейдите в раздел "JWT Tokens"</li>
+                                    <li>Измените алгоритм в заголовке JWT на "none"</li>
+                                    <li>После успешного изменения появится флаг: <code>FLAG{WebGoat_JWT_...}</code></li>
+                                </ol>
+                            </div>
+
+                        {% elif id == 'mutillidae' %}
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">1</span> Local File Inclusion</h5>
+                                <ol>
+                                    <li>Перейдите: "OWASP 2017 → A3 → LFI"</li>
+                                    <li>Используйте параметр: <code>?page=../../../../etc/passwd</code></li>
+                                    <li>В содержимом файла найдите флаг: <code>FLAG{Mutillidae_LFI_...}</code></li>
+                                </ol>
+                            </div>
+
+                        {% elif id == 'vulnerable_wordpress' %}
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">1</span> User Enumeration</h5>
+                                <ol>
+                                    <li>Перейдите по адресу: <code>/wp-json/wp/v2/users/</code></li>
+                                    <li>Найдите имя администратора в ответе API</li>
+                                    <li>Флаг будет в формате: <code>FLAG{WP_Enum_...}</code></li>
+                                </ol>
+                            </div>
+
+                        {% elif id == 'vulnerable_joomla' %}
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">1</span> SQL Injection</h5>
+                                <ol>
+                                    <li>Добавьте к URL: <pre>index.php?option=com_fields&view=fields&layout=modal&list[fullordering]=updatexml(0x23,concat(1,user()),1)</pre></li>
+                                    <li>В сообщении об ошибке найдите флаг: <code>FLAG{Joomla_SQL1_...}</code></li>
+                                </ol>
+                            </div>
+
+                        {% elif id == 'hackazon' %}
+                            <div class="mb-4">
+                                <h5><span class="badge bg-dark me-2">1</span> CSRF</h5>
+                                <ol>
+                                    <li>Создайте HTML-страницу с формой изменения email</li>
+                                    <li>Пример кода формы:
+<pre>&lt;form action="http://localhost:8086/user/change-email" method="POST"&gt;
+  &lt;input type="hidden" name="email" value="hacker@example.com"&gt;
+  &lt;input type="submit" value="Submit"&gt;
+&lt;/form&gt;</pre></li>
+                                    <li>После изменения email появится флаг: <code>FLAG{Hackazon_CSRF_...}</code></li>
+                                </ol>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция для проверки флагов -->
+        <div class="row mb-4 flag-form" id="flags">
+            <div class="col-12">
+                <h2 class="mb-3">
+                    <i class="fas fa-check-double text-secondary"></i> Проверка флагов
+                </h2>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>После нахождения флага введите его в поле ниже для проверки.
+                </div>
+                <form id="flagForm" class="mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-flag"></i>
+                                </span>
+                                <input type="text" class="form-control" id="flagInput" placeholder="FLAG{...}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-check me-2"></i>Проверить
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div id="flagResult"></div>
+            </div>
+        </div>
     </div>
 
+    <!-- Футер -->
+    <footer class="bg-dark text-white py-4 mt-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>
+                        <i class="fas fa-shield-alt me-2"></i>Web Security Sandbox
+                    </h5>
+                    <p class="mb-0">Платформа для обучения веб-безопасности</p>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <a href="https://github.com/FanOfLitov/SANDBOX" class="text-white me-3 text-decoration-none">
+                        <i class="fab fa-github fa-lg me-1"></i> GitHub
+                    </a>
+                    <a href="#" class="text-white text-decoration-none">
+                        <i class="fas fa-book fa-lg me-1"></i> Документация
+                    </a>
+                </div>
+            </div>
+            <hr class="my-3">
+            <div class="text-center">
+                <small>© 2025 Web Security Sandbox. Все права защищены.</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Модальное окно успеха -->
+    <div class="modal fade" id="flagSuccessModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>Успех!
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="flagSuccessMessage" class="lead">Флаг верный! Уязвимость подтверждена.</p>
+                    <div class="alert alert-success">
+                        <i class="fas fa-star me-2"></i>Вы успешно выполнили задание!
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Запуск инстанса
         async function launchInstance(imageId) {
             const statusElement = document.getElementById(`status-${imageId}`);
-            statusElement.innerHTML = '<div class="spinner-border text-primary" role="status"></div> Запуск сервиса...';
+            statusElement.innerHTML = `
+                <div class="d-flex align-items-center text-primary">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    <span>Запуск сервиса, пожалуйста подождите...</span>
+                </div>
+            `;
 
             try {
                 const response = await fetch('/create', {
@@ -90,178 +375,121 @@
 
                 const data = await response.json();
                 if (data.error) {
-                    statusElement.innerHTML = `<div class="alert alert-danger">Ошибка: ${data.error}</div>`;
-                } else {
                     statusElement.innerHTML = `
-                        <div class="alert alert-success">
-                            Сервис запущен! <a href="${data.url}" target="_blank">Открыть</a>
+                        <div class="alert alert-danger d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span>Ошибка: ${data.error}</span>
                         </div>
                     `;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ошибка запуска',
+                        text: data.error,
+                        confirmButtonColor: '#dc3545'
+                    });
+                } else {
+                    statusElement.innerHTML = `
+                        <div class="alert alert-success d-flex align-items-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span>Сервис запущен! <a href="${data.url}" target="_blank" class="alert-link">Открыть</a></span>
+                        </div>
+                    `;
+
+                    // Открываем в новой вкладке через 3 секунды
+                    setTimeout(() => {
+                        window.open(data.url, '_blank');
+                    }, 3000);
                 }
             } catch (error) {
-                statusElement.innerHTML = `<div class="alert alert-danger">Ошибка подключения: ${error}</div>`;
+                statusElement.innerHTML = `
+                    <div class="alert alert-danger d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span>Ошибка подключения: ${error.message}</span>
+                    </div>
+                `;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ошибка сети',
+                    text: 'Не удалось подключиться к серверу',
+                    confirmButtonColor: '#dc3545'
+                });
             }
         }
+
+        // Проверка флага
+        document.getElementById('flagForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const flagInput = document.getElementById('flagInput');
+            const flag = flagInput.value.trim();
+            const resultDiv = document.getElementById('flagResult');
+
+            if (!flag) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Пустой флаг',
+                    text: 'Пожалуйста, введите флаг для проверки',
+                    confirmButtonColor: '#ffc107'
+                });
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="d-flex align-items-center text-primary">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    <span>Проверка флага...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/check_flag', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `flag=${encodeURIComponent(flag)}`
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    // Показываем модальное окно с успехом
+                    document.getElementById('flagSuccessMessage').textContent = data.message;
+                    const modal = new bootstrap.Modal(document.getElementById('flagSuccessModal'));
+                    modal.show();
+
+                    // Очищаем поле ввода
+                    flagInput.value = '';
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Неверный флаг',
+                        text: data.message || 'Флаг не соответствует ни одной уязвимости',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ошибка подключения',
+                    text: 'Не удалось проверить флаг. Попробуйте позже.',
+                    confirmButtonColor: '#dc3545'
+                });
+            } finally {
+                resultDiv.innerHTML = '';
+            }
+        });
+
+        // Инициализация табов
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabEls = document.querySelectorAll('#guideTabs button[data-bs-toggle="tab"]');
+            tabEls.forEach(tabEl => {
+                tabEl.addEventListener('shown.bs.tab', function() {
+                    window.scrollTo({
+                        top: document.getElementById('guides').offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
     </script>
 </body>
-
-    <div class="container mt-0">
-  <!-- Footer -->
-  <footer
-          class="text-center text-lg-start text-white"
-          style="background-color: #663399"
-          >
-
-    <div class="container p-4 pb-0">
- 
-      <section class="">
-
-        <div class="row">
-
-          <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
-            <h5 class="text-uppercase">FOOTER CONTENT</h5>
-
-            <p>
-              Сайт посвящается Федечке, который поддерживает меня во время его разработки. А если серьезно, то ты должен контроль прогресса придумать и проверять выполнил ли студент лабу или нет
-            </p>
-          </div>
-
-          <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-            <h5 class="text-uppercase">Links</h5>
-
-            <ul class="list-unstyled mb-0">
-              <li>
-                <a href="#!" class="text-white">Link 1</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 2</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 3</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 4</a>
-              </li>
-            </ul>
-          </div>
-
-          <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-            <h5 class="text-uppercase">Links</h5>
-
-            <ul class="list-unstyled mb-0">
-              <li>
-                <a href="#!" class="text-white">Link 1</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 2</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 3</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 4</a>
-              </li>
-            </ul>
-          </div>
-
-          <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-            <h5 class="text-uppercase">Links</h5>
-
-            <ul class="list-unstyled mb-0">
-              <li>
-                <a href="#!" class="text-white">Link 1</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 2</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 3</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 4</a>
-              </li>
-            </ul>
-          </div>
-          <!--Grid column-->
-
-          <!--Grid column-->
-          <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-            <h5 class="text-uppercase">Links</h5>
-
-            <ul class="list-unstyled mb-0">
-              <li>
-                <a href="#!" class="text-white">Link 1</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 2</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 3</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 4</a>
-              </li>
-            </ul>
-          </div>
-          <!--Grid column-->
-        </div>
-
-      </section>
-
-
-      <hr class="mb-4" />
-
-
-      <section class="">
-        <p class="d-flex justify-content-center align-items-center">
-          <span class="me-3">Регистрация для контроля прогресса</span>
-          <button type="button" class="btn btn-outline-light btn-rounded">
-            Sign up!
-          </button>
-        </p>
-      </section>
-
-
-      <hr class="mb-4" />
-
-
-      <section class="mb-4 text-center">
-  
-        <a
-           class="btn btn-outline-light btn-floating m-1"
-           href="#!"
-           role="button"
-           ><i class="fab fa-facebook-f"></i
-          ></a>
-
-
-
-
-        <!-- Github -->
-        <a
-           class="btn btn-outline-light btn-floating m-1"
-           href="https://github.com/FanOfLitov/SANDBOX"
-           role="button"
-           ><i class="fab fa-github"></i
-          ></a>
-      </section>
-
-    </div>
-
-    <div
-         class="text-center p-3"
-         style="background-color: rgba(0, 0, 0, 0.2)"
-         >
-      © 2025 Copyright:
-      <a class="text-white" href="https://github.com/FanOfLitov/SANDBOX"
-         >Напишите сайт за нас, пожалуйста</a
-        >
-    </div>
-
-  </footer>
-
-</div>
-
-
 </html>
-
