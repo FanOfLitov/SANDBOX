@@ -42,3 +42,18 @@ P.S.
 
     WebGoat (для изучения OWASP Top 10):
      docker pull webgoat/webgoat-8.0
+
+
+
+02.04
+
+образы для готовых сайтов/сервисов уязвимых
+
+docker pull vulnerables/web-dvwa
+docker pull raesene/bwapp
+docker pull bkimminich/juice-shop
+docker pull webgoat/webgoat-8.0
+docker pull citizenstig/nowasp
+docker pull wpscanteam/vulnerablewordpress
+docker pull greggm/vulnerable-joomla
+docker pull citizenstig/hackazon
