@@ -5,9 +5,25 @@ from threading import Timer
 import random
 import string
 import os
+import json
+from flask import redirect
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+USERS_FILE = 'users.json'
+
+# Функции работы с пользователями
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        return {}
+    with open(USERS_FILE, 'r') as f:
+        return json.load(f)
+
+def save_users(users):
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f)
 
 # Конфигурация уязвимых образов
 VULNERABLE_IMAGES = {
@@ -103,14 +119,52 @@ VULNERABLE_IMAGES = {
     }
 }
 
-
 @app.route('/')
 def index():
-    return render_template('index.html', images=VULNERABLE_IMAGES)
+    return render_template('index.html', images=VULNERABLE_IMAGES, username=session.get('username'))
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        users = load_users()
+        if username in users:
+            return jsonify({'status': 'error', 'message': 'Пользователь уже существует'}), 400
+
+        users[username] = generate_password_hash(password)
+        save_users(users)
+
+        return jsonify({'status': 'success', 'message': 'Регистрация успешна!'})
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    users = load_users()
+    if username not in users or not check_password_hash(users[username], password):
+        return jsonify({'status': 'error', 'message': 'Неверные учетные данные'}), 401
+
+    session['username'] = username
+    return jsonify({'status': 'success', 'message': 'Вход выполнен'})
+
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect('/')
 
 @app.route('/create', methods=['POST'])
 def create_instance():
+    if 'username' not in session:
+        return jsonify({'error': 'Вы не авторизованы'}), 403
+
     image_id = request.form.get('image')
     if image_id not in VULNERABLE_IMAGES:
         return jsonify({'error': 'Invalid image'}), 400
@@ -138,7 +192,7 @@ def create_instance():
         port = container.ports[f"{image_config['port']}/tcp"][0]['HostPort']
         url = f"http://localhost:{port}"
 
-        # Открываем в браузере через 5 секунд (даем контейнеру время запуститься)
+        # Открываем в браузере через 5 секунд
         Timer(5, open_browser, args=(url,)).start()
 
         return jsonify({
@@ -148,7 +202,6 @@ def create_instance():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/check_flag', methods=['POST'])
 def check_flag():
@@ -161,10 +214,8 @@ def check_flag():
 
     return jsonify({'status': 'error', 'message': 'Неверный флаг'}), 400
 
-
 def open_browser(url):
     webbrowser.open_new_tab(url)
-
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)
