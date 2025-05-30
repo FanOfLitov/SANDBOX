@@ -1,0 +1,9 @@
+FLAG{1b40ed54f9bc};dvwa;easy
+FLAG{c9beccc5172b};dvwa;medium
+FLAG{79f25ceefbf9};dvwa;hard
+FLAG{2a5aff9e02c0};juice-shop;easy
+FLAG{114dbe0c001b};juice-shop;medium
+FLAG{593e58471eee};juice-shop;hard
+FLAG{887fa50672f3};wordpress;easy
+FLAG{4084b9976ee9};wordpress;medium
+FLAG{99a763d98e68};wordpress;hard

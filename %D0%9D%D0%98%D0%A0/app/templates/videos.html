@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Обучающие видео — CTF-Labs{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">🎬 Обучающие материалы</h2>
+
+<div class="row g-4 mb-4">
+  <!-- Карточка с поиском -->
+  <div class="col-md-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Поиск видео</h5>
+        <form id="video-search-form">
+          <div class="input-group">
+            <input type="text" class="form-control" name="query" placeholder="Введите тему (например, SQL-инъекции)" required>
+            <button class="btn btn-primary" type="submit">Найти</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Секция с популярными видео -->
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">XCC атаки</h5>
+        <div class="ratio ratio-16x9 mb-3">
+          <iframe src="https://www.youtube.com/embed/EoaDgUgS6QA" allowfullscreen></iframe>
+        </div>
+        <p class="card-text text-muted">Как работают XCC атаки</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">SQL-инъекции</h5>
+        <div class="ratio ratio-16x9 mb-3">
+          <iframe src="https://www.youtube.com/embed/ciNHn38EyRc" allowfullscreen></iframe>
+        </div>
+        <p class="card-text text-muted">Как работают SQL-инъекции на практике</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Дополнительные видео -->
+<div class="row g-4 mt-2">
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Что такое Brute Force</h5>
+        <div class="ratio ratio-16x9 mb-3">
+          <iframe src="https://www.youtube.com/embed/XkaJ3IPqGLw" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Работа с Burb Suite</h5>
+        <div class="ratio ratio-16x9 mb-3">
+          <iframe src="https://www.youtube.com/embed/IWWYNDiwYOA" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Анализ сетевого трафика</h5>
+        <div class="ratio ratio-16x9 mb-3">
+          <iframe src="https://www.youtube.com/embed/4axF6P4dKpI" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="my-4">
+
+<!-- Плейлисты -->
+<h4 class="mb-3">Полезные плейлисты</h4>
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Курс по кибербезопасности от CS50</h5>
+        <div class="ratio ratio-16x9 mb-3">
+          <iframe src="https://www.youtube.com/embed/videoseries?list=PLhQjrBD2T383Cqo5I1oRrbC1EKRAKGKUE" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Разбор CTF-задач</h5>
+        <div class="ratio ratio-16x9 mb-3">
+          <iframe src="https://www.youtube.com/embed/videoseries?list=PL1H1sBF1VAKXh8kYOAz6O7bD4X7tXp7Vx" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Обработка поиска видео (заглушка)
+document.getElementById('video-search-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const query = e.target.query.value;
+  alert(`Поиск видео по запросу: ${query}\n(Реализация API YouTube потребует ключ разработчика)`);
+});
+</script>
+{% endblock %}
