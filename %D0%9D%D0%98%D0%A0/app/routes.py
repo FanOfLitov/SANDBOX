@@ -63,6 +63,8 @@ LABS_INFO = [
             <li>Загрузи файл через уязвимую форму загрузки</li>
             <li>Перейди по адресу: <code>http://localhost:8080/hackable/uploads/shell.php</code></li>
             <li>Вывод: Shell был выполнен на сервере</li>
+            <li>Для инструкций к более высокой сложности воспользуйтесь ссылкой:</li>
+            <li>https://timcore.ru/2021/05/11/41-ujazvimost-dvwa-sql-injection-blind-uroven-low/</li>
         </ul>
             
         """,
